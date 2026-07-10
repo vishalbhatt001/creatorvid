@@ -10,19 +10,38 @@ import { env } from "../env.js";
  */
 
 const RAZORPAY_API = "https://api.razorpay.com/v1";
+const KEY_ID_RE = /^rzp_(test|live)_/;
 
 export function isRazorpayConfigured(): boolean {
-  return Boolean(env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET);
+  return Boolean(
+    env.RAZORPAY_KEY_ID &&
+      env.RAZORPAY_KEY_SECRET &&
+      KEY_ID_RE.test(env.RAZORPAY_KEY_ID),
+  );
 }
 
-/** Throws a clear error if Razorpay keys aren't set. */
+/** Throws a clear error if Razorpay keys aren't set or look malformed. */
 function requireKeys(): { id: string; secret: string } {
   if (!env.RAZORPAY_KEY_ID || !env.RAZORPAY_KEY_SECRET) {
     throw new Error(
       "Razorpay is not configured. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in the backend .env.",
     );
   }
+  if (!KEY_ID_RE.test(env.RAZORPAY_KEY_ID)) {
+    throw new Error(
+      "RAZORPAY_KEY_ID looks invalid (expected rzp_test_… or rzp_live_…). Copy both keys from the Razorpay dashboard → Settings → API Keys.",
+    );
+  }
   return { id: env.RAZORPAY_KEY_ID, secret: env.RAZORPAY_KEY_SECRET };
+}
+
+function authFailureMessage(status: number, body: string): string | null {
+  if (status === 401 || body.includes("Authentication failed")) {
+    return (
+      "Razorpay authentication failed — verify RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET are a matching pair from the same mode (test or live) in the Razorpay dashboard → Settings → API Keys."
+    );
+  }
+  return null;
 }
 
 export interface RazorpayOrder {
@@ -55,7 +74,8 @@ export async function createOrder(params: {
     }),
   });
   if (!res.ok) {
-    throw new Error(`Razorpay order creation failed: ${res.status} ${await res.text()}`);
+    const body = await res.text();
+    throw new Error(authFailureMessage(res.status, body) ?? `Razorpay order creation failed: ${res.status} ${body}`);
   }
   return (await res.json()) as RazorpayOrder;
 }

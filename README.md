@@ -147,4 +147,3 @@ http://localhost:4000/api/auth/callback/google
 | `bun run check-types`   | Type-check the whole monorepo.               |
 | `bun run db:migrate`    | Run Prisma migrations.                       |
 | `bun run db:studio`     | Open Prisma Studio.                          |
-# creatorvid

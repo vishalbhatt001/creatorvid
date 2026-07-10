@@ -34,7 +34,9 @@ EXPOSE 4000
 #
 # Run from packages/db so `bunx prisma` resolves the project's pinned Prisma (it's a
 # dependency there) rather than fetching a newer, incompatible Prisma from npm.
-# DATABASE_URL is provided as a mounted `.env` file (k8s secret at
-# /app/apps/backend/.env), so source it first; under docker-compose that file is
-# absent (the `|| true` no-ops) and the real env vars are used instead.
-CMD ["sh", "-c", "set -a; . /app/apps/backend/.env 2>/dev/null || true; set +a; (cd packages/db && bunx prisma db push --skip-generate) ; cd apps/backend && bun start"]
+# DATABASE_URL (and other secrets) may come from a mounted `.env` file (k8s secret at
+# /app/apps/backend/.env) and/or from container env vars. docker-entrypoint.sh loads
+# the file without clobbering orchestrator-provided vars.
+COPY apps/backend/docker-entrypoint.sh /app/apps/backend/docker-entrypoint.sh
+RUN chmod +x /app/apps/backend/docker-entrypoint.sh
+CMD ["/app/apps/backend/docker-entrypoint.sh"]

@@ -96,11 +96,29 @@ const envSchema = z.object({
 
   // Razorpay (credit purchases). Without these the billing endpoints return a
   // clear 503; everything else still works. Get keys from the Razorpay dashboard.
-  RAZORPAY_KEY_ID: z.string().optional(),
-  RAZORPAY_KEY_SECRET: z.string().optional(),
+  RAZORPAY_KEY_ID: z
+    .string()
+    .optional()
+    .transform((v) => {
+      const trimmed = v?.trim();
+      return trimmed || undefined;
+    }),
+  RAZORPAY_KEY_SECRET: z
+    .string()
+    .optional()
+    .transform((v) => {
+      const trimmed = v?.trim();
+      return trimmed || undefined;
+    }),
   // Optional webhook signing secret (Razorpay dashboard → Webhooks). Used to
   // verify `payment.captured` events as a backstop to client-side verification.
-  RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
+  RAZORPAY_WEBHOOK_SECRET: z
+    .string()
+    .optional()
+    .transform((v) => {
+      const trimmed = v?.trim();
+      return trimmed || undefined;
+    }),
 
   // ---- Credit pricing (fixed price per action) ----
   // Each generation costs a flat number of credits regardless of model. Defaults

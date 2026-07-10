@@ -1,0 +1,91 @@
+server:
+  port: ${PORT:4001}
+
+spring:
+  application:
+    name: pixovid-backend
+  # Global cap sized for the largest upload (admin-uploaded raw video blocks, M6); matches
+  # apps/backend/src/lib/uploads.ts's videoUpload instance (500MB) as the ceiling for all routes.
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 500MB
+  # Shares the same Postgres instance/creds as apps/backend (see root docker-compose.yml's
+  # `postgres` service) during the side-by-side parity-testing phase.
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:video_arena}
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+      # Preserve exact camelCase column/table names (no snake_case rewriting) and
+      # quote every identifier, matching Prisma's generated schema exactly.
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        globally_quoted_identifiers: true
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+# Mirrors apps/backend/src/env.ts's variable names 1:1 so the same .env/docker-compose
+# values configure both backends during the side-by-side migration.
+app:
+  backend-url: ${BACKEND_URL:http://localhost:4001}
+  frontend-url: ${FRONTEND_URL:http://localhost:3001}
+  admin-emails: ${ADMIN_EMAILS:}
+  superadmin-emails: ${SUPERADMIN_EMAILS:}
+
+  auth:
+    session-secret: ${BETTER_AUTH_SECRET:change-me-in-development-please-32chars}
+    google-client-id: ${GOOGLE_CLIENT_ID:}
+    google-client-secret: ${GOOGLE_CLIENT_SECRET:}
+
+  openrouter:
+    api-key: ${OPENROUTER_API_KEY:}
+    base-url: ${OPENROUTER_BASE_URL:https://openrouter.ai/api/v1}
+    thumbnail-model: ${OPENROUTER_THUMBNAIL_MODEL:google/gemini-3.1-flash-image}
+    thumbnail-fallback-models: ${OPENROUTER_THUMBNAIL_FALLBACK_MODELS:bytedance-seed/seedream-4.5,black-forest-labs/flux.2-klein-4b}
+    swap-model: ${OPENROUTER_SWAP_MODEL:black-forest-labs/flux.2-klein-4b}
+
+  swap:
+    provider: ${SWAP_PROVIDER:facefusion}
+    facefusion-url: ${FACEFUSION_URL:http://localhost:7865}
+
+  render:
+    block-concurrency: ${RENDER_BLOCK_CONCURRENCY:3}
+    video-max-attempts: ${RENDER_VIDEO_MAX_ATTEMPTS:3}
+
+  razorpay:
+    key-id: ${RAZORPAY_KEY_ID:}
+    key-secret: ${RAZORPAY_KEY_SECRET:}
+    webhook-secret: ${RAZORPAY_WEBHOOK_SECRET:}
+
+  credits:
+    per-image: ${CREDITS_PER_IMAGE:6}
+    per-video: ${CREDITS_PER_VIDEO:60}
+    per-template-render: ${CREDITS_PER_TEMPLATE_RENDER:1000}
+    usd-inr-rate: ${USD_INR_RATE:86}
+
+  minio:
+    endpoint: ${MINIO_ENDPOINT:localhost}
+    frontend-endpoint: ${MINIO_FRONTEND_ENDPOINT:localhost}
+    port: ${MINIO_PORT:9000}
+    use-ssl: ${MINIO_USE_SSL:false}
+    access-key: ${MINIO_ACCESS_KEY:minioadmin}
+    secret-key: ${MINIO_SECRET_KEY:minioadmin}
+    bucket: ${MINIO_BUCKET:video-arena}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
