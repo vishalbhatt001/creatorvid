@@ -22,7 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 /** Port of apps/backend/src/routes/faceswaps.ts. All routes require auth (enforced by SecurityConfig). */
 @RestController
-@RequestMapping("/api/faceswaps")
+@RequestMapping("/api/face-swaps")
 public class FaceSwapsController {
 
   private final FaceSwapRepository faceSwaps;
