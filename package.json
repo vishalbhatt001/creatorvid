@@ -12,11 +12,7 @@
     "docker:logs": "docker compose logs -f",
     "docker:reset": "docker compose down -v",
     "docker:facefusion": "docker compose --profile facefusion up -d --build facefusion",
-    "infra:up": "docker compose up -d postgres minio",
-    "db:generate": "bun run --cwd packages/db db:generate",
-    "db:migrate": "bun run --cwd packages/db db:migrate",
-    "db:push": "bun run --cwd packages/db db:push",
-    "db:studio": "bun run --cwd packages/db db:studio"
+    "infra:up": "docker compose up -d postgres minio"
   },
   "devDependencies": {
     "prettier": "^3.7.4",

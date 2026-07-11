@@ -1,5 +1,5 @@
 server:
-  port: ${PORT:4001}
+  port: ${PORT:4000}
 
 spring:
   application:
@@ -35,8 +35,8 @@ spring:
 # Mirrors apps/backend/src/env.ts's variable names 1:1 so the same .env/docker-compose
 # values configure both backends during the side-by-side migration.
 app:
-  backend-url: ${BACKEND_URL:http://localhost:4001}
-  frontend-url: ${FRONTEND_URL:http://localhost:3001}
+  backend-url: ${BACKEND_URL:http://localhost:4000}
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
   admin-emails: ${ADMIN_EMAILS:}
   superadmin-emails: ${SUPERADMIN_EMAILS:}
 

@@ -37,68 +37,6 @@ services:
   backend:
     build:
       context: .
-      dockerfile: apps/backend/Dockerfile
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-      minio:
-        condition: service_started
-    environment:
-      NODE_ENV: production
-      PORT: 4000
-      BACKEND_URL: ${BACKEND_URL:-http://localhost:4000}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-video_arena}?schema=public
-      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-change-me-in-production-please-32chars}
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
-      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
-      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
-      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
-      OPENROUTER_THUMBNAIL_MODEL: ${OPENROUTER_THUMBNAIL_MODEL:-google/gemini-3.1-flash-image}
-      OPENROUTER_THUMBNAIL_FALLBACK_MODELS: ${OPENROUTER_THUMBNAIL_FALLBACK_MODELS:-bytedance-seed/seedream-4.5,black-forest-labs/flux.2-klein-4b}
-      SWAP_PROVIDER: ${SWAP_PROVIDER:-facefusion}
-      OPENROUTER_SWAP_MODEL: ${OPENROUTER_SWAP_MODEL:-black-forest-labs/flux.2-klein-4b}
-      FACEFUSION_URL: ${FACEFUSION_URL:-http://facefusion:7865}
-      RENDER_BLOCK_CONCURRENCY: ${RENDER_BLOCK_CONCURRENCY:-3}
-      RENDER_VIDEO_MAX_ATTEMPTS: ${RENDER_VIDEO_MAX_ATTEMPTS:-3}
-      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
-      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-}
-      RAZORPAY_WEBHOOK_SECRET: ${RAZORPAY_WEBHOOK_SECRET:-}
-      CREDITS_PER_IMAGE: ${CREDITS_PER_IMAGE:-6}
-      CREDITS_PER_VIDEO: ${CREDITS_PER_VIDEO:-60}
-      CREDITS_PER_TEMPLATE_RENDER: ${CREDITS_PER_TEMPLATE_RENDER:-1000}
-      USD_INR_RATE: ${USD_INR_RATE:-86}
-      MINIO_ENDPOINT: minio
-      MINIO_FRONTEND_ENDPOINT: ${MINIO_FRONTEND_ENDPOINT:-localhost}
-      MINIO_PORT: 9000
-      MINIO_USE_SSL: "false"
-      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
-      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
-      MINIO_BUCKET: ${MINIO_BUCKET:-video-arena}
-    ports:
-      - "4000:4000"
-
-  frontend:
-    build:
-      context: .
-      dockerfile: apps/frontend/Dockerfile
-      args:
-        VITE_API_URL: ${BACKEND_URL:-http://localhost:4000}
-    restart: unless-stopped
-    depends_on:
-      - backend
-    ports:
-      - "5173:80"
-
-  # --- New Spring + Next.js stack (side-by-side with backend/frontend above during
-  # the migration; see spec docs for the cutover plan). Ports 4001/3001 to avoid
-  # colliding with the existing backend (4000) / frontend (5173). ---
-
-  backend-spring:
-    build:
-      context: .
       dockerfile: apps/backend-spring/Dockerfile
     restart: unless-stopped
     depends_on:
@@ -107,9 +45,9 @@ services:
       minio:
         condition: service_started
     environment:
-      PORT: 4001
-      BACKEND_URL: ${BACKEND_SPRING_URL:-http://localhost:4001}
-      FRONTEND_URL: ${FRONTEND_NEXT_URL:-http://localhost:3001}
+      PORT: 4000
+      BACKEND_URL: ${BACKEND_URL:-http://localhost:4000}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
@@ -144,19 +82,19 @@ services:
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
       MINIO_BUCKET: ${MINIO_BUCKET:-video-arena}
     ports:
-      - "4001:4001"
+      - "4000:4000"
 
-  frontend-next:
+  frontend:
     build:
       context: .
       dockerfile: apps/frontend-next/Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${BACKEND_SPRING_URL:-http://localhost:4001}
+        NEXT_PUBLIC_API_URL: ${BACKEND_URL:-http://localhost:4000}
     restart: unless-stopped
     depends_on:
-      - backend-spring
+      - backend
     ports:
-      - "3001:3001"
+      - "5173:3001"
 
   # Self-hosted FaceFusion face-swap service (HTTP wrapper around FaceFusion's
   # `headless-run` CLI — see infra/facefusion). Started only with the
